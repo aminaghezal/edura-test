@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "EDURA Test",
+    "slug": "edura-test",
+    "version": "1.0.0",
+    "orientation": "default",
+    "scheme": "eduratest",
+    "primaryColor": "#6C63FF",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.edura.test",
+      "requiresFullScreen": true
+    },
+    "android": {
+      "package": "com.edura.test",
+      "versionCode": 1,
+      "permissions": ["INTERNET"]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
