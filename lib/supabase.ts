@@ -2,21 +2,39 @@ import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    storage: AsyncStorage,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
+// Fail loud on missing env — avoids the "app installs but won't start" mystery.
+// If the build accidentally ships without these, fetchStudents() throws a clear
+// message instead of crashing the app on launch with createClient(undefined).
+export const supabaseConfigError =
+  !supabaseUrl || !supabaseAnonKey
+    ? `Supabase credentials missing in the build. EXPO_PUBLIC_SUPABASE_URL=${supabaseUrl ?? 'undefined'} / ANON_KEY=${supabaseAnonKey ? 'set' : 'undefined'}`
+    : null;
+
+// Use safe fallback values so createClient doesn't throw at import time
+// — fetchStudents will catch the misconfig and surface it to the UI.
+export const supabase = createClient(
+  supabaseUrl ?? 'https://invalid.supabase.co',
+  supabaseAnonKey ?? 'invalid',
+  {
+    auth: {
+      storage: AsyncStorage,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+    },
   },
-});
+);
 
 // ── Students ─────────────────────────────────────────────────────────────────
 
 export async function fetchStudents() {
+  // Surface misconfig as a fetch error instead of letting Supabase
+  // bury it in a generic network failure.
+  if (supabaseConfigError) throw new Error(supabaseConfigError);
+
   // Pull all active students with the columns we display/verify against
   const { data: students, error } = await supabase
     .from('students')
